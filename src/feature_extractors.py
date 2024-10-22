@@ -97,9 +97,10 @@ class FeatureExtractorDDPM(FeatureExtractor):
         expected_args = {name: kwargs[name] for name in argnames}
         self.model, self.diffusion = create_model_and_diffusion(**expected_args)
         
-        self.model.load_state_dict(
-            dist_util.load_state_dict(model_path, map_location="cpu")
-        )
+        # self.model.load_state_dict(
+        #     dist_util.load_state_dict(model_path, map_location="cpu")
+        # )
+        self.model.load_state_dict(torch.load(model_path))
         self.model.to(dist_util.dev())
         if kwargs['use_fp16']:
             self.model.convert_to_fp16()
