@@ -14,12 +14,13 @@
   "dim": [256, 256, 512],
   "steps": [50],
   "blocks": [6],
+  "best_t": 250,
 
   "model_num": 10,
   "batch_size": 1,
   "max_training": 30,
   
-  "training_number": 20,
+  "training_number": 40,
   "testing_number": 10,
 
   "upsample_mode":"bilinear",

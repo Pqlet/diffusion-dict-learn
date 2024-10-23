@@ -62,6 +62,36 @@ def prepare_data(args):
     return X[y != args['ignore_label']], y[y != args['ignore_label']]
 
 
+def prepare_sae_data(args):
+    assert "best_t" in args
+    args["steps"] = [args["best_t"]]
+    feature_extractor = create_feature_extractor(**args)
+    
+    dataset = ImageLabelDataset(
+        data_dir=args['training_path'],
+        resolution=args['image_size'],
+        num_images=args['training_number'],
+        transform=make_transform(
+            args['model_type'],
+            args['image_size']
+        )
+    )
+    X = torch.zeros((len(dataset), *args["dim"]), dtype=torch.float) # N_IMGS, C, H, W
+
+    if 'share_noise' in args and args['share_noise']:
+        rnd_gen = torch.Generator(device=dev()).manual_seed(args['seed'])
+        noise = torch.randn(1, 3, args['image_size'], args['image_size'], 
+                            generator=rnd_gen, device=dev())
+    else:
+        noise = None 
+
+    for row, (img, _) in enumerate(tqdm(dataset)):
+        img = img[None].to(dev())
+        X[row] = feature_extractor(img, noise=noise)[0] # single tensor list
+
+    return X
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     add_dict_to_argparser(parser, model_and_diffusion_defaults())
@@ -77,16 +107,32 @@ if __name__ == '__main__':
     opts.update(vars(args))
     opts['image_size'] = opts['dim'][0]
 
-    opts['dim'][-1] = 512 # should be correct for single t
-    for t in tqdm(range(50, 951, 50)):
-        print(f"getting features for t={t}")
-        opts["steps"] = [t] # select single step to collect features for
-        X, y = prepare_data(opts)
+    if opts.get("best_t") is None: # execute feature_dataset collection
+        opts['dim'][-1] = 512 # should be correct for single t
+        for t in tqdm(range(50, 951, 50)):
+            print(f"getting features for t={t}")
+            opts["steps"] = [t] # select single step to collect features for
+            X, y = prepare_data(opts)
+            features = dict()
+            features[f"x_{t}"] = X
+            features["y"] = y
+            save_file(features, f"clf_features_20_{t}.safetensors")
+            del features
+            gc.collect()
+    else: # collect out_block activations dataset
+        print("[COLLECTING FEATURES FOR SAE]")
+        target_blocks = opts["blocks"].copy()
+        block_sizes = [
+            [512, 32, 32]
+        ] # IMPORTANT: fill this manually to match desired blocks out_sizes
         features = dict()
-        features[f"x_{t}"] = X
-        features["y"] = y
-        save_file(features, f"clf_features_20_{t}.safetensors")
-        del features
-        gc.collect()
+        for b, out_size in zip(target_blocks, block_sizes):
+            print(f"[WOKRING WITH BLOCK={b}]")
+            opts["blocks"] = [b]
+            opts["dim"] = out_size
+            X = prepare_sae_data(opts)
+            features[f"{opts['best_t']}_{b}"] = X
+        save_file(features, "sae_features_train.safetensors")
+    
     
         
