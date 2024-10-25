@@ -2,6 +2,8 @@
 
 This project is based of **Label-Efficient Semantic Segmentation with Diffusion Models** repository code and data - [here](https://github.com/yandex-research/ddpm-segmentation). We try applying SAE to Diffusion model and find neurons corresponding to segmentation of images for particular classes. We conduct experiments to find best t and train SAE on block=6 outputs. Data collection and processing is implemented in `collect_features.py` script, and SAE training, visualization and metric evaulation is done in `train-sae.ipynb` notebook. Feel free to explore.
 
+The notebook with our best-trained SAE is `train-sae-BEST-10scale+big3batch+moreEp+t150.ipynb`. You can find visualizations for every class there. 
+
 In short, we find that there exist nice features within SAE that are comparable in terms of IoU to usage of trained classifiers proposed in original paper.
 
 Sections below are left from original codebase to better understand code structure and data.
