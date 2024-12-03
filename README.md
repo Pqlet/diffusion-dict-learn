@@ -2,6 +2,13 @@
 
 In short, we find that feature maps of img2img DM can be decomposed, using the Sparse Autoencoder, into semantic features that align with GT semantic masks in terms of IoU. See our presentation for the results: [Link](https://docs.google.com/presentation/d/1gUjpomvHIki4aPuMgWJjJUIv6ydq96NVEWT2e4ch9a0/edit#slide=id.p)
 
+<p align="center">
+    <img src="imgs/examples-ddm.png" alt="Examples features" width="700">
+</p>
+<p align="center">
+    <em>Examples of learnt features' activations. Columns: Original Image, Ground Truth mask, Top-1 feature activation, Top-2 feature activation.</em>
+</p>
+
 This project is based on **Label-Efficient Semantic Segmentation with Diffusion Models** repository code and data - [here](https://github.com/yandex-research/ddpm-segmentation). We apply SAE to img2img pixel-space Diffusion Model and find features/latents that overlap with GT segmentation masks of images for particular classes. We conduct experiments to find best timestep and train SAE on block=6 outputs. Data collection and processing is implemented in `collect_features.py` script, and SAE training, visualization and metric evaulation is done in `train-sae.ipynb` notebook. Feel free to explore. The notebook with our best-trained SAE is `train-sae-BEST-10scale+big3batch+moreEp+t150.ipynb`. You can find visualizations for every class there. 
 
 Sections below are left from original codebase to better understand code structure and data.
