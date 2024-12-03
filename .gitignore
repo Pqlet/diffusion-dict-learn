@@ -8,3 +8,5 @@ pixel_classifiers
 *.jpg
 *.png
 *.npz
+
+!imgs/*
